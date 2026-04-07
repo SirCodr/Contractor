@@ -94,11 +94,12 @@ export async function createContractAction(
       property_description: data.property.description,
       rent_amount_text: numberToSpanishText(data.monthlyRent),
       rent_amount: formatCurrency(data.monthlyRent),
-      bank_name: data.bankName,
-      bank_account: data.bankAccount,
+      bank_payment_text: data.bankName && data.bankAccount 
+        ? ` o mediante transferencia electrónica a la cuenta de ahorros ${data.bankName} Nro. ${data.bankAccount}`
+        : '',
       start_date: data.startDate,
       end_date: data.endDate,
-      duration_months: data.durationMonths,
+      duration_months: `${numberToSpanishText(data.durationMonths).toLowerCase()} (${data.durationMonths}) meses`,
       max_occupants: data.maxOccupants ?? 'dos',
       deposit_amount_text: numberToSpanishText(data.depositAmount ?? 0),
       deposit_amount: formatCurrency(data.depositAmount ?? 0),

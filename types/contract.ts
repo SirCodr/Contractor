@@ -91,6 +91,7 @@ export type ContractVariable = {
 export type ContractFormData = {
   landlord: Person
   tenant: Person
+  hasCoDebtor: boolean
   coDebtor?: Person
   property: Property
   monthlyRent: number
@@ -100,7 +101,7 @@ export type ContractFormData = {
   maxOccupants?: string
   startDate: string
   endDate: string
-  durationMonths: string
+  durationMonths: number
   signatureCity: string
   signatureDay: string
   signatureMonth: string

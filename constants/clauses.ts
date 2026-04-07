@@ -43,10 +43,10 @@ export const BASE_CLAUSES: TemplateClause[] = [
   {
     id: 'segunda',
     title: 'SEGUNDA - CANON MENSUAL',
-    content: 'El precio mensual que el Arrendatario se obliga a pagar al Arrendador por el uso y goce del inmueble será la suma de: {{rent_amount_text}} PESOS (${{rent_amount}}) los cuales deberán ser cancelados en efectivo o mediante transferencia electrónica a la cuenta de ahorros {{bank_name}} Nro. {{bank_account}}. Los servicios de energía, tasa de aseo, alumbrado público, agua y alcantarillado, corren por cuenta del Arrendatario. Los servicios se entregan al día y a paz y salvo.',
+    content: 'El precio mensual que el Arrendatario se obliga a pagar al Arrendador por el uso y goce del inmueble será la suma de: {{rent_amount_text}} PESOS (${{rent_amount}}) los cuales deberán ser cancelados en efectivo{{bank_payment_text}}. Los servicios de energía, tasa de aseo, alumbrado público, agua y alcantarillado, corren por cuenta del Arrendatario. Los servicios se entregan al día y a paz y salvo.',
     required: true,
     defaultEnabled: true,
-    variables: ['rent_amount_text', 'rent_amount', 'bank_name', 'bank_account'],
+    variables: ['rent_amount_text', 'rent_amount', 'bank_payment_text'],
   },
   {
     id: 'tercera',
