@@ -6,6 +6,19 @@ trigger: always_on
 
 ## Project Summary
 
+**contrato-generador** is a Next.js web application designed to automate the generation of legally compliant contracts under Colombian law. The initial focus is on **residential lease contracts (Contratos de Arrendamiento de Vivienda Urbana)** governed by Ley 820 de 2003, with the goal of expanding to other contract types over time.
+
+The application allows authenticated users (via Google OAuth through NextAuth.js) to fill in structured forms, validate inputs against Colombian legal requirements, and generate ready-to-sign PDF contracts. The core value proposition is abstracting complex legal rules (rent caps, mandatory clauses, IPC-based adjustments, termination notice periods) into a guided, user-friendly wizard that prevents legally invalid contracts from being issued.
+
+**Key entities:**
+- `contract`: The core domain object representing a generated or in-progress contract document.
+- `party`: A landlord, tenant, co-debtor, or guarantor participating in a contract.
+- `property`: The urban real estate unit being leased.
+- `clause`: Individual contract sections, some mandatory by law and some optional.
+- `template`: A reusable contract structure parameterized by contract type (individual, mancomunado, compartido, pensión).
+
+**Tech stack highlights:** Next.js (App Router), NextAuth.js with Google provider, TanStack Query, Zustand, Zod, shadcn/ui, Tailwind CSS.
+
 ## Structure and Architecture
 - Built with Next.js using the App Router; all routing files are placed in the 'app' folder.
 - Key entities: credit-card, purchase.

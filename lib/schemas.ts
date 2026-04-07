@@ -3,8 +3,8 @@ import { z } from 'zod'
 const personSchema = z.object({
   name: z.string().min(1, 'Nombre requerido'),
   cedula: z.string().min(1, 'Cédula requerida'),
-  cedulaCity: z.string().min(1, 'Ciudad requerida'),
-  phone: z.string().default(''),
+  city: z.string().min(1, 'Ciudad requerida'),
+  phone: z.string().optional().default(''),
 })
 
 const propertySchema = z.object({
@@ -35,9 +35,14 @@ export const contractFormSchema = z.object({
   bankName: z.string().min(1, 'Banco requerido'),
   bankAccount: z.string().min(1, 'Número de cuenta requerido'),
   depositAmount: z.coerce.number().min(0).default(0),
-  maxOccupants: z.coerce.number().min(1).default(2),
+  maxOccupants: z.string().default('dos'),
   startDate: z.string().min(1, 'Fecha de inicio requerida'),
   endDate: z.string().min(1, 'Fecha de fin requerida'),
+  durationMonths: z.string().default(''),
+  signatureCity: z.string().default(''),
+  signatureDay: z.string().default(''),
+  signatureMonth: z.string().default(''),
+  signatureYear: z.string().default(''),
   clauses: z.array(contractClauseSchema),
 })
 

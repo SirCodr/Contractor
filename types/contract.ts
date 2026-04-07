@@ -5,8 +5,8 @@ export type ContractStatus = 'active' | 'expired' | 'terminated'
 export type Person = {
   name: string
   cedula: string
-  cedulaCity: string
-  phone: string
+  city: string
+  phone?: string
 }
 
 export type Property = {
@@ -85,4 +85,25 @@ export type ContractVariable = {
   label: string
   description?: string
   section: 'parties' | 'property' | 'financial' | 'signature'
+}
+
+/** Shape of the data submitted by the ContractBuilder wizard */
+export type ContractFormData = {
+  landlord: Person
+  tenant: Person
+  coDebtor?: Person
+  property: Property
+  monthlyRent: number
+  bankName: string
+  bankAccount: string
+  depositAmount?: number
+  maxOccupants?: string
+  startDate: string
+  endDate: string
+  durationMonths: string
+  signatureCity: string
+  signatureDay: string
+  signatureMonth: string
+  signatureYear: string
+  clauses?: TemplateClause[]
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { FileText, Building2, TrendingUp, Clock } from 'lucide-react'
 import Link from 'next/link'
+
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
+
 import { Providers } from '@/components/providers'
 import './globals.css'
 

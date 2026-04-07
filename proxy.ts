@@ -1,7 +1,8 @@
-import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 
-export default auth((req) => {
+import { auth } from '@/lib/auth'
+
+export const proxy = auth((req) => {
   const isLoggedIn = !!req.auth
   const { pathname } = req.nextUrl
 
