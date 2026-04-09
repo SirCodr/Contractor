@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Arrendo — Contratos de Arrendamiento',
-    template: '%s | Arrendo',
+    default: 'Contractor — Generación de Contratos',
+    template: '%s | Contractor',
   },
   description:
     'Crea, gestiona y firma contratos de arrendamiento de forma rápida y profesional, directamente en tu Google Drive.',

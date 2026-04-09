@@ -26,7 +26,7 @@ export default function Sidebar() {
         <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
           <FileText className="w-4 h-4 text-primary-foreground" />
         </div>
-        <span className="font-semibold tracking-tight text-sm">Arrendo</span>
+        <span className="font-semibold tracking-tight text-sm">Contractor</span>
       </div>
 
       {/* Nav */}
