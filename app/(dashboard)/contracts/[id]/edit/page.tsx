@@ -6,7 +6,7 @@ import { EditClientLoader } from './EditClientLoader'
 export default async function EditContractPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const session = await auth()
-  if (!session?.accessToken) redirect('/login')
+  if (!session?.accessToken) redirect('/')
 
   try {
     const metadata = await getFileMetadata(session.accessToken, params.id)

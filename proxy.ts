@@ -6,17 +6,17 @@ export const proxy = auth((req) => {
   const isLoggedIn = !!req.auth
   const { pathname } = req.nextUrl
 
-  const isLoginPage = pathname === '/login'
+  const isLandingPage = pathname === '/'
   const isApiRoute = pathname.startsWith('/api')
 
   if (isApiRoute) return NextResponse.next()
 
-  if (!isLoggedIn && !isLoginPage) {
-    return NextResponse.redirect(new URL('/login', req.url))
+  if (!isLoggedIn && !isLandingPage) {
+    return NextResponse.redirect(new URL('/', req.url))
   }
 
-  if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL('/', req.url))
+  if (isLoggedIn && isLandingPage) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   return NextResponse.next()

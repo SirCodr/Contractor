@@ -74,7 +74,7 @@ export default function Sidebar() {
             <p className="text-[10px] text-muted-foreground truncate">{session?.user?.email}</p>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
+            onClick={() => signOut({ callbackUrl: '/' })}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Cerrar sesión"
           >
