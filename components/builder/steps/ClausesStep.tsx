@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useBuilderStore } from '@/stores/builder-store'
-import { createContractAction } from '@/app/actions/drive'
+import { createContractAction, updateContractAction } from '@/app/actions/drive'
 import type { ContractFormData } from '@/types/contract'
 
 export function ClausesStep() {
@@ -28,6 +28,8 @@ export function ClausesStep() {
     property,
     financial,
     reset,
+    editingFileId,
+    editingConfigFileId,
   } = useBuilderStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -70,9 +72,15 @@ export function ClausesStep() {
     }
 
     try {
-      const result = await createContractAction(payload)
-      if (result.success && result.webViewLink) {
-        toast.success('Contrato generado exitosamente!')
+      let result
+      if (editingFileId && editingConfigFileId) {
+          result = await updateContractAction(payload, editingFileId, editingConfigFileId)
+      } else {
+          result = await createContractAction(payload)
+      }
+      
+      if (result.success) {
+        toast.success(editingFileId ? 'Contrato actualizado exitosamente!' : 'Contrato generado exitosamente!')
         reset()
         // we can navigate to the newly created contract or dashboard
         router.push('/') // Redirect to dashboard for now

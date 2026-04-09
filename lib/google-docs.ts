@@ -45,6 +45,40 @@ export async function createDocFromContent(
 }
 
 /**
+ * Creates a new Google Doc from HTML content, uploading it as a file
+ * and letting Drive convert it automatically (preserves formatting).
+ */
+export async function createDocFromHtml(
+  accessToken: string,
+  title: string,
+  htmlContent: string,
+  parentFolderId: string,
+): Promise<{ fileId: string; webViewLink: string }> {
+  const drive = getDriveClient(accessToken)
+
+  // When uploading text/html with mimeType = vnd.google-apps.document,
+  // Google Drive automatically converts the HTML tags into Docs formatting!
+  const createRes = await drive.files.create({
+    requestBody: {
+      name: title,
+      mimeType: 'application/vnd.google-apps.document',
+      parents: [parentFolderId],
+    },
+    media: {
+      mimeType: 'text/html',
+      body: htmlContent,
+    },
+    fields: 'id,webViewLink',
+  })
+
+  return { 
+    fileId: createRes.data.id!, 
+    webViewLink: createRes.data.webViewLink! 
+  }
+}
+
+
+/**
  * Reads a Google Doc's full plain text by retrieving its body content
  * and concatenating all paragraph text runs.
  */

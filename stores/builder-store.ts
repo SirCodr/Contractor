@@ -53,6 +53,8 @@ type BuilderStore = {
   clauses: TemplateClause[]
   isSubmitting: boolean
   result: BuilderResult | null
+  editingFileId: string | null
+  editingConfigFileId: string | null
 
   // Actions
   setStep: (step: Step) => void
@@ -69,6 +71,8 @@ type BuilderStore = {
   updateClauseContent: (id: string, content: string) => void
   setSubmitting: (v: boolean) => void
   setResult: (result: BuilderResult) => void
+  setEditingContext: (fileId: string, configId: string) => void
+  loadData: (data: any) => void
   reset: () => void
 }
 
@@ -83,6 +87,8 @@ const INITIAL_STATE = {
   clauses: BASE_CLAUSES,
   isSubmitting: false,
   result: null,
+  editingFileId: null,
+  editingConfigFileId: null,
 }
 
 export const useBuilderStore = create<BuilderStore>()(
@@ -116,6 +122,33 @@ export const useBuilderStore = create<BuilderStore>()(
       setSubmitting: (isSubmitting) => set({ isSubmitting }),
 
       setResult: (result) => set({ result }),
+
+      setEditingContext: (fileId, configId) => set({ editingFileId: fileId, editingConfigFileId: configId }),
+
+      loadData: (data) => set({
+        step: 1,
+        landlord: data.landlord || {},
+        tenant: data.tenant || {},
+        hasCoDebtor: data.hasCoDebtor || false,
+        coDebtor: data.coDebtor || {},
+        property: data.property || {},
+        financial: {
+            monthlyRent: data.monthlyRent,
+            bankName: data.bankName,
+            bankAccount: data.bankAccount,
+            depositAmount: data.depositAmount,
+            maxOccupants: data.maxOccupants,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            durationMonths: data.durationMonths,
+            signatureCity: data.signatureCity,
+            signatureDay: data.signatureDay,
+            signatureMonth: data.signatureMonth,
+            signatureYear: data.signatureYear,
+        },
+        clauses: data.clauses || BASE_CLAUSES,
+        isSubmitting: false,
+      }),
 
       reset: () => set(INITIAL_STATE),
     }),

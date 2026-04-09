@@ -81,6 +81,13 @@ export default function ContractDetailPage() {
           </div>
           
           <div className="flex items-center gap-3">
+             <Link
+               href={`/contracts/${contract.id}/edit`}
+               className={buttonVariants({ variant: 'outline' }) + " bg-background shadow-sm gap-2"}
+             >
+               <Pencil className="w-4 h-4" />
+               Editar
+             </Link>
              {contract.webViewLink && (
               <a 
                 href={contract.webViewLink} 

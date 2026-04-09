@@ -148,3 +148,48 @@ export async function listContractsInFolder(accessToken: string, folderId: strin
   })
   return res.data.files ?? []
 }
+
+export async function saveContractConfig(
+  accessToken: string,
+  folderId: string,
+  docName: string,
+  configData: any,
+  existingConfigFileId?: string,
+) {
+  const drive = getDriveClient(accessToken)
+  
+  if (existingConfigFileId) {
+    const res = await drive.files.update({
+      fileId: existingConfigFileId,
+      media: {
+        mimeType: 'application/json',
+        body: JSON.stringify(configData, null, 2),
+      },
+      fields: 'id',
+    })
+    return res.data.id!
+  }
+
+  const res = await drive.files.create({
+    requestBody: {
+      name: `${docName} - Config.json`,
+      mimeType: 'application/json',
+      parents: [folderId],
+    },
+    media: {
+      mimeType: 'application/json',
+      body: JSON.stringify(configData, null, 2),
+    },
+    fields: 'id',
+  })
+  return res.data.id!
+}
+
+export async function getContractConfig(accessToken: string, fileId: string) {
+  const drive = getDriveClient(accessToken)
+  const res = await drive.files.get({
+    fileId,
+    alt: 'media',
+  })
+  return res.data
+}

@@ -1,6 +1,7 @@
 'use server'
 
 import { auth } from '@/lib/auth'
+import { createDocFromContent, createDocFromHtml } from '@/lib/google-docs'
 import {
   initRootStructure,
   createPropertyFolder,
@@ -9,11 +10,13 @@ import {
   listContractsInFolder,
   getPropertiesFolderId,
   getDriveClient,
+  saveContractConfig,
 } from '@/lib/google-drive'
-import { createDocFromContent } from '@/lib/google-docs'
 import { replaceVariables, numberToSpanishText, formatCurrency } from '@/lib/template-engine'
 import { BASE_CLAUSES } from '@/constants/clauses'
 import type { ContractFormData } from '@/types/contract'
+import { generateContractMarkdown } from '@/lib/markdown-generator'
+import { marked } from 'marked'
 
 /** Called once after first login to initialize the root Drive folder structure. */
 export async function initDriveAction(): Promise<{ success: boolean; rootFolderId?: string }> {
@@ -76,66 +79,25 @@ export async function createContractAction(
       data.property.address,
     )
 
-    // 2. Build variables map
-    const variables: Record<string, string> = {
-      landlord_name: data.landlord.name,
-      landlord_cedula: data.landlord.cedula,
-      landlord_city: data.landlord.city,
-      landlord_phone: data.landlord.phone ?? '',
-      tenant_name: data.tenant.name,
-      tenant_cedula: data.tenant.cedula,
-      tenant_city: data.tenant.city,
-      tenant_phone: data.tenant.phone ?? '',
-      municipality: data.property.city,
-      property_type: data.property.type,
-      property_floor: data.property.floor ?? '',
-      property_address: data.property.address,
-      property_neighborhood: data.property.neighborhood,
-      property_description: data.property.description,
-      rent_amount_text: numberToSpanishText(data.monthlyRent),
-      rent_amount: formatCurrency(data.monthlyRent),
-      bank_payment_text: data.bankName && data.bankAccount 
-        ? ` o mediante transferencia electrónica a la cuenta de ahorros ${data.bankName} Nro. ${data.bankAccount}`
-        : '',
-      start_date: data.startDate,
-      end_date: data.endDate,
-      duration_months: `${numberToSpanishText(data.durationMonths).toLowerCase()} (${data.durationMonths}) meses`,
-      max_occupants: data.maxOccupants ?? 'dos',
-      deposit_amount_text: numberToSpanishText(data.depositAmount ?? 0),
-      deposit_amount: formatCurrency(data.depositAmount ?? 0),
-      signature_city: data.signatureCity,
-      signature_day: data.signatureDay,
-      signature_month: data.signatureMonth,
-      signature_year: data.signatureYear,
-    }
+    // 2. Construir el contrato completo usando nuestro Markdown Generator
+    // (Pasamos la data que cumple con la misma estructura requerida)
+    const markdown = generateContractMarkdown(data as any)
 
-    // 3. Build full contract text from enabled clauses
-    const enabledClauses = (data.clauses ?? BASE_CLAUSES).filter((c) => c.defaultEnabled)
-    const lines: string[] = [
-      `CONTRATO DE ARRENDAMIENTO DE VIVIENDA URBANA\n`,
-      `Entre los suscritos, ARRENDADOR: ${variables.landlord_name}, identificado con C.C. No. ${variables.landlord_cedula} de ${variables.landlord_city}; y ARRENDATARIO: ${variables.tenant_name}, identificado con C.C. No. ${variables.tenant_cedula} de ${variables.tenant_city}; se celebra el presente contrato de arrendamiento que se regirá por las siguientes cláusulas:\n`,
-    ]
-
-    for (const clause of enabledClauses) {
-      lines.push(`\n${clause.title}\n${replaceVariables(clause.content, variables)}\n`)
-    }
-
-    lines.push(
-      `\nFirmado en ${variables.signature_city}, a los ${variables.signature_day} días del mes de ${variables.signature_month} de ${variables.signature_year}.\n`,
-      `\n\n_______________________________\nARRENDADOR\n${variables.landlord_name}\nC.C. ${variables.landlord_cedula}`,
-      `\n\n_______________________________\nARRENDATARIO\n${variables.tenant_name}\nC.C. ${variables.tenant_cedula}`,
-    )
-
+    // 3. Convertir Markdown a HTML
+    // Docs formatea el texto nativamente al recibir HTML estructurado
     const docTitle = `${data.startDate.slice(0, 4)} - ${data.tenant.name}`
-    const content = lines.join('')
+    const htmlContent = await marked.parse(markdown)
 
-    // 4. Create the Google Doc
-    const { fileId, webViewLink } = await createDocFromContent(
+    // 4. Crear el Google Doc con formato respetado
+    const { fileId, webViewLink } = await createDocFromHtml(
       session.accessToken,
       docTitle,
-      content,
+      htmlContent,
       propertyFolderId,
     )
+
+    // 4.5. Guardar la configuración JSON del Wizard (Estado)
+    const configId = await saveContractConfig(session.accessToken, propertyFolderId, docTitle, data)
 
     // 5. Persist metadata as Drive file.properties
     const metadata: Record<string, string> = {
@@ -149,6 +111,7 @@ export async function createContractAction(
       start_date: data.startDate,
       end_date: data.endDate,
       status: 'active',
+      config_file_id: configId, // <-- Vincular el JSON con el Google Doc
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -159,6 +122,63 @@ export async function createContractAction(
   } catch (error) {
     console.error('[createContractAction] Failed:', error)
     return { success: false, error: 'Error al crear el contrato en Drive' }
+  }
+}
+
+/**
+ * Updates an existing contract Google Doc and its config JSON from form data.
+ */
+export async function updateContractAction(
+  data: ContractFormData,
+  fileId: string,
+  configFileId: string,
+): Promise<{ success: boolean; webViewLink?: string; error?: string }> {
+  const session = await auth()
+  if (!session?.accessToken) return { success: false, error: 'No autenticado' }
+
+  try {
+    const docTitle = `${data.startDate.slice(0, 4)} - ${data.tenant.name}`
+    const propertyFolderId = await createPropertyFolder(session.accessToken, data.property.address)
+
+    // 1. Convert to Markdown then HTML
+    const markdown = generateContractMarkdown(data as any)
+    const htmlContent = await marked.parse(markdown)
+
+    // 2. Update Google Doc (replace contents)
+    const drive = getDriveClient(session.accessToken)
+    await drive.files.update({
+      fileId,
+      requestBody: { name: docTitle },
+      media: {
+        mimeType: 'text/html',
+        body: htmlContent,
+      },
+    })
+    
+    // 3. Update configuration JSON
+    await saveContractConfig(session.accessToken, propertyFolderId, docTitle, data, configFileId)
+
+    // 4. Update metadata
+    const metadata: Record<string, string> = {
+      landlord_name: data.landlord.name,
+      landlord_cedula: data.landlord.cedula,
+      tenant_name: data.tenant.name,
+      tenant_cedula: data.tenant.cedula,
+      property_address: data.property.address,
+      property_city: data.property.city,
+      monthly_rent: String(data.monthlyRent),
+      start_date: data.startDate,
+      end_date: data.endDate,
+      status: 'active',
+      config_file_id: configFileId,
+      updated_at: new Date().toISOString(),
+    }
+    await saveFileMetadata(session.accessToken, fileId, metadata)
+
+    return { success: true }
+  } catch (error) {
+    console.error('[updateContractAction] Failed:', error)
+    return { success: false, error: 'Error al actualizar el contrato en Drive' }
   }
 }
 
