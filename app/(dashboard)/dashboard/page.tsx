@@ -59,18 +59,17 @@ export default function DashboardPage() {
     },
   })
 
-  const { data: properties, isLoading: isLoadingProperties } = useQuery({
-    queryKey: ['properties'],
-    queryFn: async () => {
-      const res = await fetch('/api/properties')
-      if (!res.ok) throw new Error('Error fetching properties')
-      return res.json() as Promise<any[]>
-    },
-  })
+
 
   // Compute stats
   const activeContracts = contracts?.length ?? 0
-  const totalProperties = properties?.length ?? 0
+  const totalProperties = contracts
+    ? new Set(
+        contracts
+          .map((c) => c.properties?.property_address || c.propertyFolderName)
+          .filter(Boolean)
+      ).size
+    : 0
 
   const totalRent = contracts?.reduce((acc, c) => {
     return acc + Number(c.properties?.monthly_rent || 0)
@@ -115,7 +114,7 @@ export default function DashboardPage() {
           label="Inmuebles" 
           value={totalProperties} 
           icon={Building2} 
-          isLoading={isLoadingProperties} 
+          isLoading={isLoadingContracts} 
         />
         <StatCard 
           label="Vencen este mes" 
