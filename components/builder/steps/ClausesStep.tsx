@@ -4,11 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { FileText, Save, Check, ShieldAlert, ChevronLeft, Pencil, X } from 'lucide-react'
+import { Save, Check, ShieldAlert, ChevronLeft, Pencil, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useBuilderStore } from '@/stores/builder-store'
 import { createContractAction, updateContractAction } from '@/app/actions/drive'
 import type { ContractFormData } from '@/types/contract'
@@ -32,6 +34,8 @@ export function ClausesStep() {
     reset,
     editingFileId,
     editingConfigFileId,
+    contractName,
+    setContractName,
   } = useBuilderStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -53,6 +57,7 @@ export function ClausesStep() {
     
     // Construct payload
     const payload: ContractFormData = {
+      contractName,
       landlord: landlord as any,
       tenant: tenant as any,
       hasCoDebtor,
@@ -95,7 +100,7 @@ export function ClausesStep() {
       } else {
         toast.error(result.error || 'Ocurrió un error al generar el contrato')
       }
-    } catch (error) {
+    } catch {
       toast.error('Error de red al intentar generar el contrato')
     } finally {
       setSubmitting(false)
@@ -178,7 +183,18 @@ export function ClausesStep() {
         ))}
       </div>
 
-      <div className="flex justify-between pt-6 border-t mt-8">
+      <div className="pt-6 mt-6 border-t space-y-3">
+        <Label htmlFor="contractName">Nombre del archivo en Google Drive (Opcional)</Label>
+        <Input 
+          id="contractName"
+          placeholder="Ej: Apartamento piso 2"
+          value={contractName}
+          onChange={(e) => setContractName(e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">Si lo dejas vacío, se guardará por defecto de forma organizada.</p>
+      </div>
+
+      <div className="flex justify-between pt-6 border-t mt-4">
          <Button type="button" variant="ghost" className="gap-2" onClick={() => setStep(3)}>
           <ChevronLeft className="w-4 h-4" />
           Atrás

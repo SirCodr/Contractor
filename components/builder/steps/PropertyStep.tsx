@@ -76,7 +76,7 @@ export function PropertyStep() {
             <Label htmlFor="address">Dirección</Label>
             <Input 
               id="address" 
-              placeholder="Ej: Calle 94 #87-14" 
+              placeholder="Ej: Calle 123 # 45-67" 
               {...register('address')} 
               onInput={(e) => {
                 const t = e.target as HTMLInputElement;
@@ -92,7 +92,7 @@ export function PropertyStep() {
             <Label htmlFor="neighborhood">Barrio</Label>
             <Input 
               id="neighborhood" 
-              placeholder="Ej: Pueblo Nuevo" 
+              placeholder="Ej: El Poblado" 
               {...register('neighborhood')} 
               onInput={(e) => {
                 const t = e.target as HTMLInputElement;
@@ -108,7 +108,7 @@ export function PropertyStep() {
             <Label htmlFor="city">Municipio</Label>
             <Input 
               id="city" 
-              placeholder="Ej: Apartadó, Antioquia" 
+              placeholder="Ej: Medellín, Antioquia" 
               {...register('city')} 
               onInput={(e) => {
                 const t = e.target as HTMLInputElement;
@@ -144,7 +144,7 @@ export function PropertyStep() {
             <Label htmlFor="floor">
               Piso / Nivel <span className="text-muted-foreground">(opcional)</span>
             </Label>
-            <Input id="floor" placeholder="Ej: tercer piso" {...register('floor')} />
+            <Input id="floor" placeholder="Ej: 2° Piso" {...register('floor')} />
           </div>
 
           <div className="col-span-2 space-y-1.5">
@@ -153,7 +153,7 @@ export function PropertyStep() {
               id="description"
               {...register('description')}
               rows={3}
-              placeholder="Ej: Consta de sala, comedor, cocina, dos alcobas y un baño"
+              placeholder="Ej: Consta de sala, comedor, cocina, 2 habitaciones y 1 baño"
               className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
             />
             {errors.description && (

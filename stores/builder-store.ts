@@ -44,6 +44,7 @@ type BuilderResult = {
 
 type BuilderStore = {
   step: Step
+  highestStep: Step
   landlord: Partial<PersonDraft>
   tenant: Partial<PersonDraft>
   hasCoDebtor: boolean
@@ -55,8 +56,10 @@ type BuilderStore = {
   result: BuilderResult | null
   editingFileId: string | null
   editingConfigFileId: string | null
+  contractName: string
 
   // Actions
+  setContractName: (name: string) => void
   setStep: (step: Step) => void
   setParties: (data: {
     landlord: PersonDraft
@@ -78,6 +81,7 @@ type BuilderStore = {
 
 const INITIAL_STATE = {
   step: 1 as Step,
+  highestStep: 1 as Step,
   landlord: {},
   tenant: {},
   hasCoDebtor: false,
@@ -89,6 +93,7 @@ const INITIAL_STATE = {
   result: null,
   editingFileId: null,
   editingConfigFileId: null,
+  contractName: '',
 }
 
 export const useBuilderStore = create<BuilderStore>()(
@@ -96,7 +101,12 @@ export const useBuilderStore = create<BuilderStore>()(
     (set) => ({
       ...INITIAL_STATE,
 
-      setStep: (step) => set({ step }),
+      setContractName: (contractName) => set({ contractName }),
+
+      setStep: (step) => set((state) => ({ 
+        step,
+        highestStep: Math.max(state.highestStep || 1, step) as Step 
+      })),
 
       setParties: ({ landlord, tenant, hasCoDebtor, coDebtor }) =>
         set({ landlord, tenant, hasCoDebtor, coDebtor: coDebtor ?? {} }),
@@ -127,6 +137,8 @@ export const useBuilderStore = create<BuilderStore>()(
 
       loadData: (data) => set({
         step: 1,
+        highestStep: (data.highestStep || 4) as Step, // If loading edited data, allow full nav
+        contractName: data.contractName || '',
         landlord: data.landlord || {},
         tenant: data.tenant || {},
         hasCoDebtor: data.hasCoDebtor || false,

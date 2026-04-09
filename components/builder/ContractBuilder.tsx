@@ -1,6 +1,7 @@
 'use client'
 
 import { useBuilderStore } from '@/stores/builder-store'
+import type { Step } from '@/stores/builder-store'
 import { PartiesStep } from './steps/PartiesStep'
 import { PropertyStep } from './steps/PropertyStep'
 import { FinancialStep } from './steps/FinancialStep'
@@ -15,6 +16,8 @@ const STEPS = [
 
 export function ContractBuilder() {
   const currentStep = useBuilderStore((state) => state.step)
+  const highestStep = useBuilderStore((state) => state.highestStep)
+  const setStep = useBuilderStore((state) => state.setStep)
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-8rem)]">
@@ -25,19 +28,28 @@ export function ContractBuilder() {
           {STEPS.map((step) => {
             const isActive = step.id === currentStep
             const isCompleted = step.id < currentStep
+            const isReachable = step.id <= highestStep
 
             return (
-              <div key={step.id} className="flex flex-col items-center gap-2 bg-background px-2">
+              <div 
+                key={step.id} 
+                className="flex flex-col items-center gap-2 bg-background px-2"
+              >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors duration-300 ${
+                  onClick={() => { if (isReachable) setStep(step.id as Step) }}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
+                    isReachable && !isActive ? 'cursor-pointer hover:opacity-80 hover:ring-2' : ''
+                  } ${
                     isActive
                       ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
                       : isCompleted
                       ? 'bg-primary/20 text-primary border border-primary/30'
+                      : isReachable
+                      ? 'bg-muted text-foreground border border-primary/20 hover:border-primary/50'
                       : 'bg-muted text-muted-foreground border border-border'
                   }`}
                 >
-                  {isCompleted ? (
+                  {isCompleted && !isReachable ? (
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>

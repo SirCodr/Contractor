@@ -76,10 +76,18 @@ export async function getPropertiesFolderId(accessToken: string) {
   return findOrCreateFolder(drive, PROPERTIES_FOLDER_NAME, rootId)
 }
 
-export async function createPropertyFolder(accessToken: string, address: string) {
+export async function getTemplatesFolderId(accessToken: string) {
   const drive = getDriveClient(accessToken)
-  const propertiesId = await getPropertiesFolderId(accessToken)
-  return findOrCreateFolder(drive, address, propertiesId)
+  const rootId = await findOrCreateFolder(drive, ROOT_FOLDER_NAME)
+  return findOrCreateFolder(drive, TEMPLATES_FOLDER_NAME, rootId)
+}
+
+export async function createPropertyFolder(accessToken: string, address: string, isTemplate: boolean = false) {
+  const drive = getDriveClient(accessToken)
+  const parentId = isTemplate 
+    ? await getTemplatesFolderId(accessToken)
+    : await getPropertiesFolderId(accessToken)
+  return findOrCreateFolder(drive, address, parentId)
 }
 
 export async function createDocFromText(

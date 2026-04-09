@@ -12,10 +12,10 @@ import { useBuilderStore } from '@/stores/builder-store'
 import type { PersonDraft } from '@/stores/builder-store'
 
 const personSchema = z.object({
-  name: z.string().min(1, 'Nombre requerido'),
-  cedula: z.string().min(1, 'Cédula requerida'),
-  city: z.string().min(1, 'Ciudad requerida'),
-  phone: z.string().default(''),
+  name: z.string().optional().default(''),
+  cedula: z.string().optional().default(''),
+  city: z.string().optional().default(''),
+  phone: z.string().optional().default(''),
 })
 
 const personOptionalSchema = z.object({
@@ -70,7 +70,7 @@ function PersonFields({
           <Label htmlFor={`${prefix}-name`}>Nombre completo</Label>
           <Input
             id={`${prefix}-name`}
-            placeholder="Ej: EUCLIDIA OQUENDO"
+            placeholder="Ej: Juan Pérez Gómez"
             {...register(`${prefix}.name` as 'landlord.name')}
             onInput={(e) => {
               const target = e.target as HTMLInputElement
@@ -85,7 +85,7 @@ function PersonFields({
           <Label htmlFor={`${prefix}-cedula`}>Cédula</Label>
           <Input
             id={`${prefix}-cedula`}
-            placeholder="Ej: 39.407.524"
+            placeholder="Ej: 1020304050"
             {...register(`${prefix}.cedula` as 'landlord.cedula')}
           />
           {fieldErrors.cedula && (
@@ -96,7 +96,7 @@ function PersonFields({
           <Label htmlFor={`${prefix}-city`}>Ciudad de expedición</Label>
           <Input
             id={`${prefix}-city`}
-            placeholder="Ej: Apartadó"
+            placeholder="Ej: Bogotá"
             {...register(`${prefix}.city` as 'landlord.city')}
             onInput={(e) => {
               const target = e.target as HTMLInputElement
@@ -113,7 +113,7 @@ function PersonFields({
           </Label>
           <Input
             id={`${prefix}-phone`}
-            placeholder="Ej: 313 646 4240"
+            placeholder="Ej: 300 123 4567"
             {...register(`${prefix}.phone` as 'landlord.phone')}
           />
         </div>

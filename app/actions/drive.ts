@@ -9,6 +9,7 @@ import {
   getFileMetadata,
   listContractsInFolder,
   getPropertiesFolderId,
+  getTemplatesFolderId,
   getDriveClient,
   saveContractConfig,
 } from '@/lib/google-drive'
@@ -73,10 +74,12 @@ export async function createContractAction(
   if (!session?.accessToken) return { success: false, error: 'No autenticado' }
 
   try {
-    // 1. Get or create property folder
+    // 1. Get or create property folder (differentiates if it's a template)
+    const isTemplate = !data.tenant.name || data.tenant.name.trim() === '';
     const propertyFolderId = await createPropertyFolder(
       session.accessToken,
       data.property.address,
+      isTemplate
     )
 
     // 2. Construir el contrato completo usando nuestro Markdown Generator
@@ -85,7 +88,11 @@ export async function createContractAction(
 
     // 3. Convertir Markdown a HTML
     // Docs formatea el texto nativamente al recibir HTML estructurado
-    const docTitle = `${data.startDate.slice(0, 4)} - ${data.tenant.name}`
+    const fallbackTitle = isTemplate 
+      ? `Plantilla - ${data.property.address}`
+      : `${data.startDate.slice(0, 4)} - ${data.tenant.name}`
+      
+    const docTitle = data.contractName?.trim() || fallbackTitle
     const htmlContent = await marked.parse(markdown)
 
     // 4. Crear el Google Doc con formato respetado
@@ -137,8 +144,13 @@ export async function updateContractAction(
   if (!session?.accessToken) return { success: false, error: 'No autenticado' }
 
   try {
-    const docTitle = `${data.startDate.slice(0, 4)} - ${data.tenant.name}`
-    const propertyFolderId = await createPropertyFolder(session.accessToken, data.property.address)
+    const isTemplate = !data.tenant.name || data.tenant.name.trim() === '';
+    const fallbackTitle = isTemplate 
+      ? `Plantilla - ${data.property.address}`
+      : `${data.startDate.slice(0, 4)} - ${data.tenant.name}`
+      
+    const docTitle = data.contractName?.trim() || fallbackTitle
+    const propertyFolderId = await createPropertyFolder(session.accessToken, data.property.address, isTemplate)
 
     // 1. Convert to Markdown then HTML
     const markdown = generateContractMarkdown(data as any)
@@ -189,15 +201,25 @@ export async function listAllContractsAction() {
 
   try {
     const propertiesFolderId = await getPropertiesFolderId(session.accessToken)
+    const templatesFolderId = await getTemplatesFolderId(session.accessToken)
     const drive = getDriveClient(session.accessToken)
 
-    // List all property sub-folders
-    const foldersRes = await drive.files.list({
-      q: `'${propertiesFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
-      fields: 'files(id,name)',
-    })
+    // List all property sub-folders and template sub-folders in parallel
+    const [foldersRes, templateFoldersRes] = await Promise.all([
+      drive.files.list({
+        q: `'${propertiesFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+        fields: 'files(id,name)',
+      }),
+      drive.files.list({
+        q: `'${templatesFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+        fields: 'files(id,name)',
+      })
+    ])
 
-    const folders = foldersRes.data.files ?? []
+    const folders = [
+      ...(foldersRes.data.files ?? []),
+      ...(templateFoldersRes.data.files ?? []).map(f => ({ ...f, name: `${f.name} (Plantilla)` }))
+    ]
 
     // Collect contracts from each property folder
     const allContracts = await Promise.all(

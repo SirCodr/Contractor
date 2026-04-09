@@ -34,10 +34,42 @@ export async function DELETE(
     const { id } = await params
     const drive = getDriveClient(session.accessToken)
     
+    // Get metadata to find the parent folder and config file
+    const metadata = await drive.files.get({
+      fileId: id,
+      fields: 'parents, properties'
+    })
+    const parents = metadata.data.parents
+    const properties = metadata.data.properties
+
+    // Trash the contract doc
     await drive.files.update({
       fileId: id,
       requestBody: { trashed: true },
     })
+
+    // Trash the config file if it exists
+    if (properties?.config_file_id) {
+      await drive.files.update({
+        fileId: properties.config_file_id,
+        requestBody: { trashed: true },
+      }).catch(e => console.error('Failed to trash config File:', e))
+    }
+
+    // Check parent folder and trash it if it's empty
+    if (parents && parents.length > 0) {
+      const parentId = parents[0]
+      const filesInParent = await drive.files.list({
+        q: `'${parentId}' in parents and trashed = false`,
+        fields: 'files(id)'
+      })
+      if (!filesInParent.data.files || filesInParent.data.files.length === 0) {
+        await drive.files.update({
+          fileId: parentId,
+          requestBody: { trashed: true }
+        }).catch(e => console.error('Failed to trash empty folder:', e))
+      }
+    }
 
     return NextResponse.json({ success: true, message: 'Contract moved to trash' })
   } catch (error) {

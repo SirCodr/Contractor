@@ -13,25 +13,26 @@ import { useEffect } from 'react'
 
 import type { FinancialDraft } from '@/stores/builder-store'
 
-const financialSchema = z.object({
-  monthlyRent: z.coerce.number().min(1, 'Canon requerido'),
-  bankName: z.string().optional().default(''),
-  bankAccount: z.string().optional().default(''),
-  depositAmount: z.coerce.number().min(0).default(0),
-  maxOccupants: z.string().default('dos'),
-  startDate: z.string().min(1, 'Fecha inicio requerida'),
-  endDate: z.string().min(1, 'Fecha fin requerida'),
-  durationMonths: z.coerce.number().min(1, 'Duración requerida'),
-  signatureCity: z.string().min(1, 'Ciudad requerida'),
-  signatureDay: z.string().min(1, 'Día requerido'),
-  signatureMonth: z.string().min(1, 'Mes requerido'),
-  signatureYear: z.string().min(1, 'Año requerido'),
-})
-
-type FinancialFormValues = z.infer<typeof financialSchema>
-
 export function FinancialStep() {
-  const { financial, setFinancial, setStep } = useBuilderStore()
+  const { financial, tenant, setFinancial, setStep } = useBuilderStore()
+  const hasTenant = !!tenant?.name?.trim()
+
+  const financialSchema = z.object({
+    monthlyRent: z.coerce.number().min(1, 'Canon requerido'),
+    bankName: z.string().optional().default(''),
+    bankAccount: z.string().optional().default(''),
+    depositAmount: z.coerce.number().min(0).default(0),
+    maxOccupants: z.string().default('dos'),
+    startDate: hasTenant ? z.string().min(1, 'Fecha requerida') : z.string().optional().default(''),
+    endDate: hasTenant ? z.string().min(1, 'Fecha requerida') : z.string().optional().default(''),
+    durationMonths: hasTenant ? z.coerce.number().min(1, 'Requerido') : z.coerce.number().optional().default(0),
+    signatureCity: hasTenant ? z.string().min(1, 'Requerida') : z.string().optional().default(''),
+    signatureDay: hasTenant ? z.string().min(1, 'Requerido') : z.string().optional().default(''),
+    signatureMonth: hasTenant ? z.string().min(1, 'Requerido') : z.string().optional().default(''),
+    signatureYear: hasTenant ? z.string().min(1, 'Requerido') : z.string().optional().default(''),
+  })
+
+  type FinancialFormValues = z.infer<typeof financialSchema>
 
   const {
     register,
@@ -65,6 +66,15 @@ export function FinancialStep() {
   }, [watchStartDate, watchDuration, setValue])
 
   function onSubmit(values: any) {
+    if (!hasTenant) {
+      values.startDate = ''
+      values.endDate = ''
+      values.durationMonths = 0
+      values.signatureCity = ''
+      values.signatureDay = ''
+      values.signatureMonth = ''
+      values.signatureYear = ''
+    }
     setFinancial(values as FinancialFormValues)
     setStep(4)
   }
@@ -89,7 +99,7 @@ export function FinancialStep() {
                 <Input
                   type="text"
                   id="monthlyRent"
-                  placeholder="Ej: $ 1,500,000"
+                  placeholder="Ej: $ 1,000,000"
                   value={value ? `$ ${new Intl.NumberFormat('en-US').format(value)}` : ''}
                   onChange={(e) => {
                     const rawValue = e.target.value.replace(/\D/g, '')
@@ -105,7 +115,7 @@ export function FinancialStep() {
 
           <div className="space-y-1.5">
             <Label htmlFor="bankName">Banco</Label>
-            <Input id="bankName" placeholder="Ej: Bancolombia" {...register('bankName')} />
+            <Input id="bankName" placeholder="Ej: Banco de Bogotá" {...register('bankName')} />
             {errors.bankName && (
               <p className="text-xs text-destructive">{errors.bankName?.message as string}</p>
             )}
@@ -113,7 +123,7 @@ export function FinancialStep() {
 
           <div className="space-y-1.5">
             <Label htmlFor="bankAccount">Nro. Cuenta</Label>
-            <Input id="bankAccount" placeholder="Ej: 0000 0000 000" {...register('bankAccount')} />
+            <Input id="bankAccount" placeholder="Ej: 123456789" {...register('bankAccount')} />
             {errors.bankAccount && (
               <p className="text-xs text-destructive">{errors.bankAccount?.message as string}</p>
             )}
@@ -145,7 +155,7 @@ export function FinancialStep() {
             <Label htmlFor="maxOccupants">Límite de Habitantes</Label>
             <Input
               id="maxOccupants"
-              placeholder="Ej: dos, tres, una familia"
+              placeholder="Ej: dos personas, o una familia de tres"
               {...register('maxOccupants')}
             />
             {errors.maxOccupants && (
@@ -163,13 +173,20 @@ export function FinancialStep() {
           <h3 className="text-sm font-semibold">Fechas y Duración</h3>
         </div>
 
+        {!hasTenant && (
+          <p className="text-[13px] bg-amber-500/10 text-amber-600 dark:text-amber-400 p-3 rounded-lg border border-amber-500/20 leading-relaxed">
+            📝 <b>Modo Plantilla:</b> Dado que dejaste al arrendatario en blanco, la configuración de fechas está desactivada. Llénala después al asignar al inquilino real.
+          </p>
+        )}
+
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="durationMonths">Duración del contrato (meses)</Label>
             <Input
               type="number"
               id="durationMonths"
-              placeholder="Ej: 6"
+              placeholder="Ej: 12"
+              disabled={!hasTenant}
               {...register('durationMonths')}
             />
             {errors.durationMonths && (
@@ -179,7 +196,7 @@ export function FinancialStep() {
 
           <div className="space-y-1.5">
             <Label htmlFor="startDate">Fecha de inicio</Label>
-            <Input type="date" id="startDate" {...register('startDate')} />
+            <Input type="date" id="startDate" disabled={!hasTenant} {...register('startDate')} />
             {errors.startDate && (
               <p className="text-xs text-destructive">{errors.startDate?.message as string}</p>
             )}
@@ -214,31 +231,37 @@ export function FinancialStep() {
           <h3 className="text-sm font-semibold">Firma del Documento</h3>
         </div>
 
+        {!hasTenant && (
+          <p className="text-[13px] bg-amber-500/10 text-amber-600 dark:text-amber-400 p-3 rounded-lg border border-amber-500/20 leading-relaxed">
+            📝 <b>Modo Plantilla:</b> Los lugares y fechas de firma quedarán pendientes.
+          </p>
+        )}
+
         <div className="grid grid-cols-4 gap-4">
           <div className="col-span-4 space-y-1.5">
             <Label htmlFor="signatureCity">Ciudad de firma</Label>
-            <Input id="signatureCity" placeholder="Ej: Apartadó" {...register('signatureCity')} />
+            <Input id="signatureCity" placeholder="Ej: Medellín" disabled={!hasTenant} {...register('signatureCity')} />
             {errors.signatureCity && (
               <p className="text-xs text-destructive">{errors.signatureCity?.message as string}</p>
             )}
           </div>
           <div className="col-span-1 space-y-1.5">
             <Label htmlFor="signatureDay">Día</Label>
-            <Input id="signatureDay" placeholder="Ej: 01" {...register('signatureDay')} />
+            <Input id="signatureDay" placeholder="Ej: 15" disabled={!hasTenant} {...register('signatureDay')} />
             {errors.signatureDay && (
               <p className="text-xs text-destructive">{errors.signatureDay?.message as string}</p>
             )}
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="signatureMonth">Mes</Label>
-            <Input id="signatureMonth" placeholder="Ej: Mayo" {...register('signatureMonth')} />
+            <Input id="signatureMonth" placeholder="Ej: Junio" disabled={!hasTenant} {...register('signatureMonth')} />
             {errors.signatureMonth && (
               <p className="text-xs text-destructive">{errors.signatureMonth?.message as string}</p>
             )}
           </div>
           <div className="col-span-1 space-y-1.5">
             <Label htmlFor="signatureYear">Año</Label>
-            <Input id="signatureYear" placeholder="Ej: 2026" {...register('signatureYear')} />
+            <Input id="signatureYear" placeholder="Ej: 2026" disabled={!hasTenant} {...register('signatureYear')} />
             {errors.signatureYear && (
               <p className="text-xs text-destructive">{errors.signatureYear?.message as string}</p>
             )}

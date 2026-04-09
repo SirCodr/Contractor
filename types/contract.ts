@@ -89,6 +89,7 @@ export type ContractVariable = {
 
 /** Shape of the data submitted by the ContractBuilder wizard */
 export type ContractFormData = {
+  contractName?: string
   landlord: Person
   tenant: Person
   hasCoDebtor: boolean
