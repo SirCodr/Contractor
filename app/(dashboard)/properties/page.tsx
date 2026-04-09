@@ -9,29 +9,53 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function PropertiesPage() {
-  const { data: properties, isLoading } = useQuery({
-    queryKey: ['properties'],
+  const { data: contracts, isLoading } = useQuery({
+    queryKey: ['contracts'],
     queryFn: async () => {
-      const res = await fetch('/api/properties')
-      if (!res.ok) throw new Error('Failed to fetch properties')
+      const res = await fetch('/api/contracts')
+      if (!res.ok) throw new Error('Failed to fetch contracts')
       return res.json() as Promise<any[]>
     },
   })
 
+  // Derive unique properties matching the Dashboard calculation
+  const properties = contracts
+    ? Array.from(
+        new Map(
+          contracts
+            .filter((c) => c.properties?.property_address || c.propertyFolderName)
+            .map((c) => {
+              const name = c.properties?.property_address || c.propertyFolderName
+              return [
+                name,
+                {
+                  id: String(name),
+                  name: String(name),
+                  // Using the oldest contract's date as a proxy for property creation
+                  createdTime: c.createdTime,
+                },
+              ]
+            })
+        ).values()
+      ).sort((a, b) => new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime())
+    : []
+
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Inmuebles</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inmuebles</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Gestión de ubicaciones y propiedades raíz
           </p>
         </div>
-        <Button className="gap-2 bg-linear-to-r from-primary to-primary/80 pointer-events-none opacity-50">
-          <Plus className="w-4 h-4" />
-          Añadir inmueble
-        </Button>
+        <div className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto gap-2 bg-linear-to-r from-primary to-primary/80 pointer-events-none opacity-50">
+            <Plus className="w-4 h-4" />
+            Añadir inmueble
+          </Button>
+        </div>
       </div>
 
       {/* Grid */}
@@ -50,13 +74,13 @@ export default function PropertiesPage() {
             </div>
           ))
         ) : properties?.length === 0 ? (
-          <div className="col-span-full py-16 flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-border bg-muted/10">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-              <Building2 className="w-6 h-6 text-muted-foreground" />
+          <div className="col-span-full py-16 sm:py-24 flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-border bg-muted/10 px-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+              <Building2 className="w-8 h-8 text-primary" />
             </div>
-            <p className="text-sm font-medium">No tienes inmuebles registrados</p>
-            <p className="text-xs text-muted-foreground mt-1 min-w-[250px]">
-              Los inmuebles se auto-crean cuando un contrato nuevo los especifica en el constructor.
+            <h3 className="text-lg font-semibold mb-2">Aún no hay inmuebles</h3>
+            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+              Tus inmuebles se crearán o vincularán automáticamente aquí cuando finalices un nuevo contrato de arrendamiento.
             </p>
           </div>
         ) : (

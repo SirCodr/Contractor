@@ -1,10 +1,14 @@
 'use client'
 
+import { useState } from 'react'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
-import { FileText, Home, Building2, LayoutTemplate, LogOut, ChevronRight } from 'lucide-react'
+import { FileText, Home, Building2, LayoutTemplate, LogOut, ChevronRight, Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 import { cn } from '@/lib/utils'
 
@@ -18,19 +22,18 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const [open, setOpen] = useState(false)
 
-  return (
-    <aside className="w-60 shrink-0 flex flex-col h-screen sticky top-0 border-r border-border">
-      {/* Logo */}
-      <div className="h-14 flex items-center gap-3 px-5 border-b border-border">
+  const SidebarContent = (
+    <>
+      <div className="h-14 flex items-center gap-3 px-5 border-b border-border bg-card">
         <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
           <FileText className="w-4 h-4 text-primary-foreground" />
         </div>
         <span className="font-semibold tracking-tight text-sm">Contractor</span>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-4 px-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 bg-card">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
@@ -38,11 +41,12 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={() => setOpen(false)}
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
                 isActive
                   ? 'bg-accent text-accent-foreground'
-                  : 'text-sidebar-foreground hover:bg-muted hover:text-foreground',
+                  : 'text-sidebar-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -53,8 +57,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* User */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border bg-card">
         <div className="flex items-center gap-3 px-3 py-2">
           {session?.user?.image ? (
             <Image
@@ -82,6 +85,49 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* MOBILE HEADER */}
+      <header className="md:hidden sticky top-0 z-50 flex items-center justify-between h-14 px-4 bg-background border-b border-border">
+        <div className="flex items-center gap-3">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="-ml-2">
+                <Menu className="w-5 h-5 text-foreground" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0 flex flex-col hide-close-button bg-card">
+              {SidebarContent}
+            </SheetContent>
+          </Sheet>
+          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <span className="font-semibold text-sm">Contractor</span>
+        </div>
+        
+        {session?.user?.image ? (
+          <Image
+            src={session.user.image}
+            alt={session.user.name ?? ''}
+            width={28}
+            height={28}
+            className="w-7 h-7 rounded-full ring-1 ring-border shrink-0"
+          />
+        ) : (
+          <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center shrink-0">
+            <span className="text-xs font-medium">{session?.user?.name?.[0] ?? '?'}</span>
+          </div>
+        )}
+      </header>
+
+      {/* DESKTOP SIDEBAR */}
+      <aside className="w-60 shrink-0 hidden md:flex flex-col h-screen sticky top-0 border-r border-border bg-card">
+        {SidebarContent}
+      </aside>
+    </>
   )
 }

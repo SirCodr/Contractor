@@ -24,7 +24,7 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-xl border p-5 space-y-3 ${
+      className={`rounded-xl border p-4 sm:p-5 space-y-3 ${
         accent ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'
       }`}
     >
@@ -39,7 +39,7 @@ function StatCard({
         </div>
       </div>
       {isLoading ? (
-        <Skeleton className="h-9 w-24" />
+        <Skeleton className="h-9 w-24 rounded-md" />
       ) : (
         <p className={`text-3xl font-bold tracking-tight ${accent ? 'text-primary' : ''}`}>
           {value}
@@ -84,17 +84,17 @@ export default function DashboardPage() {
   const recentContracts = contracts?.slice(0, 5) ?? []
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Inicio</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inicio</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona tus contratos de arrendamiento
           </p>
         </div>
-        <Link href="/contracts/new">
-          <Button className="gap-2 bg-linear-to-r from-primary to-primary/80">
+        <Link href="/contracts/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto gap-2 bg-linear-to-r from-primary to-primary/80">
             <FileText className="w-4 h-4" />
             Nuevo contrato
           </Button>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
           label="Contratos activos" 
           value={activeContracts} 
@@ -143,22 +143,23 @@ export default function DashboardPage() {
           
           {isLoadingContracts ? (
              <div className="p-5 space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-16 w-full rounded-xl" />
+                <Skeleton className="h-16 w-full rounded-xl" />
+                <Skeleton className="h-16 w-full rounded-xl" />
              </div>
           ) : recentContracts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center px-8">
-              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
-                <FileText className="w-6 h-6 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center px-6">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                <FileText className="w-8 h-8 text-primary" />
               </div>
-              <p className="text-sm font-medium">Sin contratos aún</p>
-              <p className="text-xs text-muted-foreground mt-1 mb-4">
-                Crea tu primer contrato usando una plantilla
+              <h3 className="text-lg font-semibold mb-2">Aún no tienes contratos</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mb-6 leading-relaxed">
+                Crea uno nuevo para empezar.
               </p>
-              <Link href="/contracts/new">
-                <Button size="sm" variant="outline">
-                  Crear contrato
+              <Link href="/contracts/new" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto gap-2">
+                  <FileText className="w-4 h-4" />
+                  Crear mi primer contrato
                 </Button>
               </Link>
             </div>
@@ -184,7 +185,7 @@ export default function DashboardPage() {
                     href={c.webViewLink} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className={buttonVariants({ variant: 'ghost', size: 'icon' }) + " opacity-0 group-hover:opacity-100 transition-opacity"}
+                    className={buttonVariants({ variant: 'ghost', size: 'icon' }) + " opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity"}
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>

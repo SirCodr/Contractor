@@ -53,6 +53,9 @@ export function PropertyStep() {
     defaultValues: property as any,
   })
 
+  // Destructure watched values at the top level
+  const selectedType = watch('type')
+
   function onSubmit(values: any) {
     setProperty(values as PropertyDraft)
     setStep(3)
@@ -118,11 +121,13 @@ export function PropertyStep() {
           <div className="space-y-1.5">
             <Label htmlFor="type">Tipo de inmueble</Label>
             <Select
-              defaultValue={watch('type')}
+              value={selectedType || ''}
               onValueChange={(v) => setValue('type', v as PropertyFormValues['type'])}
             >
               <SelectTrigger id="type">
-                <SelectValue placeholder="Selecciona..." />
+                <SelectValue placeholder="Selecciona...">
+                  {PROPERTY_TYPES.find((t) => t.value === selectedType)?.label}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {PROPERTY_TYPES.map((t) => (
