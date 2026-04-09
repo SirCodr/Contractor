@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { FileText, Save, Check, ShieldAlert, ChevronLeft, Pencil, X } from 'lucide-react'
 
@@ -14,6 +15,7 @@ import type { ContractFormData } from '@/types/contract'
 
 export function ClausesStep() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const {
     clauses,
     toggleClause,
@@ -80,10 +82,16 @@ export function ClausesStep() {
       }
       
       if (result.success) {
+        // Clear caches so the dashboard and details refresh!
+        queryClient.invalidateQueries({ queryKey: ['contracts'] })
+        if (editingFileId) {
+           queryClient.invalidateQueries({ queryKey: ['contract', editingFileId] })
+        }
+
         toast.success(editingFileId ? 'Contrato actualizado exitosamente!' : 'Contrato generado exitosamente!')
         reset()
         // we can navigate to the newly created contract or dashboard
-        router.push('/') // Redirect to dashboard for now
+        router.push('/contracts') // Redirect to dashboard instead of root
       } else {
         toast.error(result.error || 'Ocurrió un error al generar el contrato')
       }

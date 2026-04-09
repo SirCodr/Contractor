@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 import { FileText, ExternalLink, Calendar, MapPin, User, ArrowLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
@@ -13,6 +13,7 @@ import Link from 'next/link'
 export default function ContractDetailPage() {
   const { id } = useParams() as { id: string }
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const { data: contract, isLoading } = useQuery({
     queryKey: ['contract', id],
@@ -29,6 +30,7 @@ export default function ContractDetailPage() {
     if (confirm('¿Estás seguro de que quieres mover este contrato a la papelera?')) {
       const res = await fetch(`/api/contracts/${id}`, { method: 'DELETE' })
       if (res.ok) {
+         queryClient.invalidateQueries({ queryKey: ['contracts'] })
          router.push('/contracts')
       }
     }
