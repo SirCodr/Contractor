@@ -6,7 +6,7 @@ import { FileText, Plus, ExternalLink, Calendar, MapPin, Search } from 'lucide-r
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -111,17 +111,22 @@ export default function ContractsPage() {
                       Activo
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      asChild
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                  <TableCell className="text-right flex items-center justify-end gap-2">
+                    <Link 
+                      href={`/contracts/${c.id}`}
+                      className={buttonVariants({ variant: 'ghost', size: 'sm' }) + " opacity-0 group-hover:opacity-100 transition-opacity"}
                     >
-                      <a href={c.webViewLink} target="_blank" rel="noopener noreferrer" title="Ver en Google Docs">
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </Button>
+                      Detalles
+                    </Link>
+                    <a 
+                      href={c.webViewLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      title="Ver en Google Docs"
+                      className={buttonVariants({ variant: 'ghost', size: 'icon' }) + " opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
                   </TableCell>
                 </TableRow>
               ))

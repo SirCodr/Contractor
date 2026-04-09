@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { format, isThisMonth, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 function StatCard({
@@ -181,16 +181,14 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    asChild
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  <a 
+                    href={c.webViewLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className={buttonVariants({ variant: 'ghost', size: 'icon' }) + " opacity-0 group-hover:opacity-100 transition-opacity"}
                   >
-                    <a href={c.webViewLink} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </Button>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
                 </div>
               ))}
             </div>
