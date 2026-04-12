@@ -114,7 +114,9 @@ export function FinancialStep() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="bankName">Banco</Label>
+            <Label htmlFor="bankName">
+              Banco <span className="text-muted-foreground">(opcional)</span>
+            </Label>
             <Input id="bankName" placeholder="Ej: Banco de Bogotá" {...register('bankName')} />
             {errors.bankName && (
               <p className="text-xs text-destructive">{errors.bankName?.message as string}</p>
@@ -122,7 +124,9 @@ export function FinancialStep() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="bankAccount">Nro. Cuenta</Label>
+            <Label htmlFor="bankAccount">
+              Nro. Cuenta <span className="text-muted-foreground">(opcional)</span>
+            </Label>
             <Input id="bankAccount" placeholder="Ej: 123456789" {...register('bankAccount')} />
             {errors.bankAccount && (
               <p className="text-xs text-destructive">{errors.bankAccount?.message as string}</p>

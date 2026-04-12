@@ -35,7 +35,7 @@ export const BASE_CLAUSES: TemplateClause[] = [
   {
     id: 'primera',
     title: 'PRIMERA.- OBJETO DEL CONTRATO',
-    content: `El Arrendador, propietario de {{property_type}} en {{property_floor}}, ubicado en la {{property_address}}, barrio {{property_neighborhood}}, del Municipio de {{municipality}}, concede al Arrendatario el uso y goce de la misma en calidad de arriendo de un inmueble de propiedad del Arrendador. {{property_description}}`,
+    content: `El Arrendador, propietario de {{property_type}}{{#property_floor}}, {{property_floor}}{{/property_floor}}, ubicado en la {{property_address}}, barrio {{property_neighborhood}}, del Municipio de {{municipality}}, concede al Arrendatario el uso y goce de la misma en calidad de arriendo de un inmueble de propiedad del Arrendador. {{property_description}}`,
     required: true,
     defaultEnabled: true,
     variables: ['property_type', 'property_floor', 'property_address', 'property_neighborhood', 'municipality', 'property_description'],
@@ -59,10 +59,10 @@ export const BASE_CLAUSES: TemplateClause[] = [
   {
     id: 'cuarta',
     title: 'CUARTA.- OPORTUNIDAD PARA EL PAGO',
-    content: `El Arrendatario se obliga a pagar al Arrendador el canon mensual de arrendamiento de manera anticipada de cada mes como producto del presente contrato, so pena de pagar intereses moratorios por los días de retraso en el pago del canon de arriendo al Arrendador, en una cuenta de ahorros {{bank_name}} Nro. {{bank_account}}.`,
+    content: `El Arrendatario se obliga a pagar al Arrendador el canon mensual de arrendamiento de manera anticipada de cada mes como producto del presente contrato, so pena de pagar intereses moratorios por los días de retraso en el pago del canon de arriendo.`,
     required: true,
     defaultEnabled: true,
-    variables: ['bank_name', 'bank_account'],
+    variables: [],
   },
   {
     id: 'quinta',
@@ -75,7 +75,7 @@ export const BASE_CLAUSES: TemplateClause[] = [
   {
     id: 'sexta',
     title: 'SEXTA - DESTINACIÓN',
-    content: `El Arrendatario se obliga a dar al inmueble uso para vivienda familiar habitada hasta para {{max_occupants}} persona(s) adulta(s) y no podrá darle otro uso, el Arrendatario no podrá subarrendar este inmueble a otra persona natural ni jurídica. El Arrendatario no podrá mantener mascotas, no podrá mantener altos volúmenes de equipo de sonidos y otros que puedan incomodar a los vecinos. No se permite obstaculizar el pasillo y la entrada del edificio a las demás personas. No se permite extender ropa en la fachada del edificio.`,
+    content: `El Arrendatario se obliga a dar al inmueble uso para vivienda familiar habitada hasta para {{max_occupants}} y no podrá darle otro uso, el Arrendatario no podrá subarrendar este inmueble a otra persona natural ni jurídica. El Arrendatario no podrá mantener mascotas, no podrá mantener altos volúmenes de equipo de sonidos y otros que puedan incomodar a los vecinos. No se permite obstaculizar el pasillo y la entrada del edificio a las demás personas. No se permite extender ropa en la fachada del edificio.`,
     required: false,
     defaultEnabled: true,
     variables: ['max_occupants'],

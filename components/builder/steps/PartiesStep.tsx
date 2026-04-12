@@ -56,9 +56,9 @@ const partiesSchema = z
 
 type PartiesFormValues = z.input<typeof partiesSchema>
 
-const formatTitleCase = (str: string) => {
-  return str.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (match) => match.toUpperCase())
-}
+// Capitaliza la primera letra de cada palabra, respetando tildes en medio de palabra
+const formatTitleCase = (str: string) =>
+  str.replace(/(?:^|\s)\S/gu, (match) => match.toUpperCase())
 
 function PersonFields({
   prefix,

@@ -93,11 +93,13 @@ export default function Sidebar() {
       <header className="md:hidden sticky top-0 z-50 flex items-center justify-between h-14 px-4 bg-background border-b border-border">
         <div className="flex items-center gap-3">
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger>
-              <Button variant="ghost" size="icon" className="-ml-2">
-                <Menu className="w-5 h-5 text-foreground" />
-              </Button>
-            </SheetTrigger>
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon" className="-ml-2">
+                  <Menu className="w-5 h-5 text-foreground" />
+                </Button>
+              }
+            />
             <SheetContent side="left" className="w-64 p-0 flex flex-col hide-close-button bg-card">
               {SidebarContent}
             </SheetContent>

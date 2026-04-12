@@ -1,9 +1,7 @@
 'use server'
 
-import { marked } from 'marked'
-
 import { auth } from '@/lib/auth'
-import { createDocFromContent, createDocFromHtml } from '@/lib/google-docs'
+import { createDocFromHtml } from '@/lib/google-docs'
 import {
   initRootStructure,
   createPropertyFolder,
@@ -15,10 +13,48 @@ import {
   getDriveClient,
   saveContractConfig,
 } from '@/lib/google-drive'
-import { replaceVariables, numberToSpanishText, formatCurrency } from '@/lib/template-engine'
-import { BASE_CLAUSES } from '@/constants/clauses'
 import type { ContractFormData } from '@/types/contract'
 import { generateContractMarkdown } from '@/lib/markdown-generator'
+
+/**
+ * Converts the contract Markdown to an HTML string with inline styles.
+ * Google Drive only respects inline `style` attributes when converting
+ * an uploaded HTML file into a Google Doc — CSS classes and <style> tags
+ * are stripped. Using inline styles guarantees the font size (14pt),
+ * line spacing (1.5) and paragraph justification are preserved in Docs.
+ */
+function markdownToStyledHtml(markdown: string): string {
+  const BODY_STYLE = 'font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.15; color: #000;'
+  const PARA_STYLE = 'font-size: 14pt; line-height: 1.15; text-align: justify; margin-top: 0; margin-bottom: 12pt;'
+  const TITLE_STYLE = 'font-size: 14pt; font-weight: bold; text-align: center; line-height: 1.15; margin: 0 0 24pt 0;'
+
+  const lines = markdown.split('\n')
+  const htmlLines: string[] = []
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+
+    // H1: # Title
+    if (trimmed.startsWith('# ')) {
+      const text = trimmed.slice(2).replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+      htmlLines.push(`<h1 style="${TITLE_STYLE}">${text}</h1>`)
+      continue
+    }
+
+    // Raw HTML passthrough (for the signature div)
+    if (trimmed.startsWith('<') && !trimmed.startsWith('<b>')) {
+      htmlLines.push(line)
+      continue
+    }
+
+    // Regular paragraph — convert **bold** to <b>
+    const text = trimmed.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+    htmlLines.push(`<p style="${PARA_STYLE}">${text}</p>`)
+  }
+
+  return `<!DOCTYPE html><html><body style="${BODY_STYLE}">${htmlLines.join('')}</body></html>`
+}
 
 /** Called once after first login to initialize the root Drive folder structure. */
 export async function initDriveAction(): Promise<{ success: boolean; rootFolderId?: string }> {
@@ -84,17 +120,16 @@ export async function createContractAction(
     )
 
     // 2. Construir el contrato completo usando nuestro Markdown Generator
-    // (Pasamos la data que cumple con la misma estructura requerida)
     const markdown = generateContractMarkdown(data as any)
 
-    // 3. Convertir Markdown a HTML
-    // Docs formatea el texto nativamente al recibir HTML estructurado
+    // 3. Convertir Markdown a HTML con estilos inline para Google Docs
+    // Google Drive respeta los atributos style inline al convertir a Doc nativo
     const fallbackTitle = isTemplate 
       ? `Plantilla - ${data.property.address}`
       : `${data.startDate.slice(0, 4)} - ${data.tenant.name}`
       
     const docTitle = data.contractName?.trim() || fallbackTitle
-    const htmlContent = await marked.parse(markdown)
+    const htmlContent = markdownToStyledHtml(markdown)
 
     // 4. Crear el Google Doc con formato respetado
     const { fileId, webViewLink } = await createDocFromHtml(
@@ -153,9 +188,9 @@ export async function updateContractAction(
     const docTitle = data.contractName?.trim() || fallbackTitle
     const propertyFolderId = await createPropertyFolder(session.accessToken, data.property.address, isTemplate)
 
-    // 1. Convert to Markdown then HTML
+    // 1. Convert to Markdown then HTML with inline styles
     const markdown = generateContractMarkdown(data as any)
-    const htmlContent = await marked.parse(markdown)
+    const htmlContent = markdownToStyledHtml(markdown)
 
     // 2. Update Google Doc (replace contents)
     const drive = getDriveClient(session.accessToken)

@@ -43,7 +43,20 @@ export function numberToSpanishText(n: number): string {
 }
 
 export function replaceVariables(template: string, variables: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => variables[key] ?? match)
+  // First: resolve conditional blocks {{#key}}content{{/key}}
+  // If the variable is non-empty, render the inner content (with variable replaced).
+  // If empty or missing, collapse the whole block to nothing.
+  let result = template.replace(
+    /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g,
+    (_match, key, inner) => {
+      const value = variables[key]
+      if (!value) return ''
+      return inner.replace(/\{\{(\w+)\}\}/g, (_m: string, k: string) => variables[k] ?? _m)
+    },
+  )
+  // Then: replace remaining simple {{key}} placeholders
+  result = result.replace(/\{\{(\w+)\}\}/g, (match, key) => variables[key] ?? match)
+  return result
 }
 
 export function formatCurrency(amount: number): string {
