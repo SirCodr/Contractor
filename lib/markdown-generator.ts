@@ -1,6 +1,7 @@
-import type { ContractFormValues } from './schemas'
 import type { ContractClause } from '@/types/contract'
 import { BASE_CLAUSES } from '@/constants/clauses'
+
+import type { ContractFormValues } from './schemas'
 import { numberToSpanishText, formatCurrency, replaceVariables } from './template-engine'
 
 export function buildContractDictionary(values: ContractFormValues): Record<string, string> {

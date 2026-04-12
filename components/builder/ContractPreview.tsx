@@ -1,7 +1,8 @@
 'use client'
 
-import { useBuilderStore } from '@/stores/builder-store'
 import { FileText, MapPin, User, Banknote } from 'lucide-react'
+
+import { useBuilderStore } from '@/stores/builder-store'
 
 export function ContractPreview() {
   const { landlord, tenant, property, financial } = useBuilderStore()

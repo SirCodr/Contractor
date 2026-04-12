@@ -5,10 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import { FileText, ExternalLink, Calendar, MapPin, User, ArrowLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
+import Link from 'next/link'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import Link from 'next/link'
 
 export default function ContractDetailPage() {
   const { id } = useParams() as { id: string }

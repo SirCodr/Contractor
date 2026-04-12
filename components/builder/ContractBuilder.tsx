@@ -2,6 +2,7 @@
 
 import { useBuilderStore } from '@/stores/builder-store'
 import type { Step } from '@/stores/builder-store'
+
 import { PartiesStep } from './steps/PartiesStep'
 import { PropertyStep } from './steps/PropertyStep'
 import { FinancialStep } from './steps/FinancialStep'

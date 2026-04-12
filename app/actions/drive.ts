@@ -1,5 +1,7 @@
 'use server'
 
+import { marked } from 'marked'
+
 import { auth } from '@/lib/auth'
 import { createDocFromContent, createDocFromHtml } from '@/lib/google-docs'
 import {
@@ -17,7 +19,6 @@ import { replaceVariables, numberToSpanishText, formatCurrency } from '@/lib/tem
 import { BASE_CLAUSES } from '@/constants/clauses'
 import type { ContractFormData } from '@/types/contract'
 import { generateContractMarkdown } from '@/lib/markdown-generator'
-import { marked } from 'marked'
 
 /** Called once after first login to initialize the root Drive folder structure. */
 export async function initDriveAction(): Promise<{ success: boolean; rootFolderId?: string }> {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
 import { useBuilderStore } from '@/stores/builder-store'
 import { ContractBuilder } from '@/components/builder/ContractBuilder'
 import { ContractPreview } from '@/components/builder/ContractPreview'
@@ -13,7 +14,8 @@ export function EditClientLoader({ data, fileId, configId }: any) {
     // Populate the store with the saved configuration
     loadData(data)
     setEditingContext(fileId, configId)
-    setReady(true)
+    const timeoutId = setTimeout(() => setReady(true), 0)
+    return () => clearTimeout(timeoutId)
   }, [loadData, setEditingContext, data, fileId, configId])
 
   if (!ready) {

@@ -1,15 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { FileText, Home, Building2, LayoutTemplate, LogOut, ChevronRight, Menu } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -94,7 +93,7 @@ export default function Sidebar() {
       <header className="md:hidden sticky top-0 z-50 flex items-center justify-between h-14 px-4 bg-background border-b border-border">
         <div className="flex items-center gap-3">
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
+            <SheetTrigger>
               <Button variant="ghost" size="icon" className="-ml-2">
                 <Menu className="w-5 h-5 text-foreground" />
               </Button>

@@ -3,6 +3,7 @@
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { FileText, Shield, Zap } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 
 export default function LandingClient() {

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Font,
 } from '@react-pdf/renderer'
+
 import type { ContractFormValues } from '@/lib/schemas'
 import type { ContractClause } from '@/types/contract'
 import { buildContractDictionary } from '@/lib/markdown-generator'

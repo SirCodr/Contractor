@@ -1,5 +1,7 @@
-import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+
+import { auth } from '@/lib/auth'
+
 import LandingClient from './LandingClient'
 
 export default async function RootPage() {

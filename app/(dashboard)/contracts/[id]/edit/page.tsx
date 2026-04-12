@@ -1,6 +1,8 @@
+import { redirect } from 'next/navigation'
+
 import { auth } from '@/lib/auth'
 import { getContractConfig, getFileMetadata } from '@/lib/google-drive'
-import { redirect } from 'next/navigation'
+
 import { EditClientLoader } from './EditClientLoader'
 
 export default async function EditContractPage(props: { params: Promise<{ id: string }> }) {

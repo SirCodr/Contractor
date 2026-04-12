@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useBuilderStore } from '@/stores/builder-store'
-import type { PersonDraft } from '@/stores/builder-store'
 
 const personSchema = z.object({
   name: z.string().optional().default(''),
@@ -25,20 +24,37 @@ const personOptionalSchema = z.object({
   phone: z.string().optional().default(''),
 })
 
-const partiesSchema = z.object({
-  landlord: personSchema,
-  tenant: personSchema,
-  hasCoDebtor: z.boolean().default(false),
-  coDebtor: personOptionalSchema.optional(),
-}).superRefine((data, ctx) => {
-  if (data.hasCoDebtor) {
-    if (!data.coDebtor?.name) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Nombre requerido', path: ['coDebtor', 'name'] })
-    if (!data.coDebtor?.cedula) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Cédula requerida', path: ['coDebtor', 'cedula'] })
-    if (!data.coDebtor?.city) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Ciudad requerida', path: ['coDebtor', 'city'] })
-  }
-})
+const partiesSchema = z
+  .object({
+    landlord: personSchema,
+    tenant: personSchema,
+    hasCoDebtor: z.boolean().default(false),
+    coDebtor: personOptionalSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.hasCoDebtor) {
+      if (!data.coDebtor?.name)
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Nombre requerido',
+          path: ['coDebtor', 'name'],
+        })
+      if (!data.coDebtor?.cedula)
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Cédula requerida',
+          path: ['coDebtor', 'cedula'],
+        })
+      if (!data.coDebtor?.city)
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Ciudad requerida',
+          path: ['coDebtor', 'city'],
+        })
+    }
+  })
 
-type PartiesFormValues = z.infer<typeof partiesSchema>
+type PartiesFormValues = z.input<typeof partiesSchema>
 
 const formatTitleCase = (str: string) => {
   return str.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (match) => match.toUpperCase())
@@ -52,7 +68,7 @@ function PersonFields({
 }: {
   prefix: 'landlord' | 'tenant' | 'coDebtor'
   label: string
-  register: ReturnType<typeof useForm<PartiesFormValues>>['register']
+  register: any
   errors: Record<string, unknown>
 }) {
   const fieldErrors = (errors[prefix] ?? {}) as Record<string, { message?: string }>
@@ -134,17 +150,17 @@ export function PartiesStep() {
   } = useForm({
     resolver: zodResolver(partiesSchema),
     defaultValues: {
-      landlord: landlord as any,
-      tenant: tenant as any,
+      landlord: landlord as PartiesFormValues['landlord'],
+      tenant: tenant as PartiesFormValues['tenant'],
       hasCoDebtor: !!hasCoDebtor,
-      coDebtor: coDebtor as any,
-    } as any,
+      coDebtor: coDebtor as PartiesFormValues['coDebtor'],
+    },
   })
 
   const watchHasCoDebtor = watch('hasCoDebtor')
 
   function onSubmit(values: any) {
-    setParties(values as Parameters<typeof setParties>[0])
+    setParties(values as unknown as Parameters<typeof setParties>[0])
     setStep(2)
   }
 
@@ -175,14 +191,25 @@ export function PartiesStep() {
         >
           {watchHasCoDebtor && (
             <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 12 12">
-              <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+              <path
+                d="M10 3L5 8.5 2 5.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+              />
             </svg>
           )}
         </div>
       </button>
 
       {watchHasCoDebtor && (
-        <PersonFields prefix="coDebtor" label="Co-deudor / Fiador" register={register} errors={errors} />
+        <PersonFields
+          prefix="coDebtor"
+          label="Co-deudor / Fiador"
+          register={register}
+          errors={errors}
+        />
       )}
 
       <div className="flex justify-end pt-2">
