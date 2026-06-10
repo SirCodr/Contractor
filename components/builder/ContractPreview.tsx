@@ -105,7 +105,7 @@ export function ContractPreview() {
                 ) : null}
               </div>
 
-               {(financial.startDate || financial.durationMonths) && (
+               {(financial.startDate || (financial.durationMonths && Number(financial.durationMonths) > 0)) && (
                  <div className="grid grid-cols-2 gap-2 mt-2">
                    <div className="p-3 bg-muted/30 rounded-lg">
                      <p className="text-[10px] uppercase text-muted-foreground mb-1">Inicio</p>
@@ -113,7 +113,7 @@ export function ContractPreview() {
                    </div>
                    <div className="p-3 bg-muted/30 rounded-lg">
                      <p className="text-[10px] uppercase text-muted-foreground mb-1">Duración</p>
-                     <p className="text-xs font-medium">{financial.durationMonths || '-'}</p>
+                     <p className="text-xs font-medium">{Number(financial.durationMonths) > 0 ? financial.durationMonths : '-'}</p>
                    </div>
                  </div>
                )}

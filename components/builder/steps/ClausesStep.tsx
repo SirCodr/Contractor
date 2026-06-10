@@ -37,6 +37,7 @@ export function ClausesStep() {
     contractName,
     setContractName,
   } = useBuilderStore()
+  const mode = useBuilderStore((state) => state.mode)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
 
@@ -53,11 +54,35 @@ export function ClausesStep() {
   }
 
   const handleGenerate = async () => {
+    // If mode is 'template', create .mdx template and redirect to editor
+    if (mode === 'template') {
+      setSubmitting(true)
+      try {
+        const templateName = contractName?.trim() || `${property.address || 'Nueva plantilla'} - Plantilla`
+        const res = await fetch('/api/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create-from-wizard', name: templateName }),
+        })
+        if (!res.ok) throw new Error('Failed to create template')
+        const data = await res.json()
+        reset()
+        router.push(`/templates/${data.fileId}/edit`)
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Error al crear plantilla')
+      } finally {
+        setSubmitting(false)
+      }
+      return
+    }
+
+    // Otherwise, create contract (mode = 'contract')
     setSubmitting(true)
     
     // Construct payload
     const payload: ContractFormData = {
       contractName,
+      selectedTemplateId: useBuilderStore.getState().selectedTemplateId,
       landlord: landlord as any,
       tenant: tenant as any,
       hasCoDebtor,

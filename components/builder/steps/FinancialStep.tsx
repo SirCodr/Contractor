@@ -69,13 +69,18 @@ export function FinancialStep() {
     if (!hasTenant) {
       values.startDate = ''
       values.endDate = ''
-      values.durationMonths = 0
+      values.durationMonths = 0 as any // force number type
       values.signatureCity = ''
       values.signatureDay = ''
       values.signatureMonth = ''
       values.signatureYear = ''
     }
-    setFinancial(values as FinancialFormValues)
+    // Ensure durationMonths is always a number, not a string
+    const cleanedValues = {
+      ...values,
+      durationMonths: Number(values.durationMonths) || 0,
+    }
+    setFinancial(cleanedValues as FinancialFormValues)
     setStep(4)
   }
 
