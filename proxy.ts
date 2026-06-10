@@ -7,9 +7,6 @@ export const proxy = auth((req) => {
   const { pathname } = req.nextUrl
 
   const isLandingPage = pathname === '/'
-  const isApiRoute = pathname.startsWith('/api')
-
-  if (isApiRoute) return NextResponse.next()
 
   if (!isLoggedIn && !isLandingPage) {
     return NextResponse.redirect(new URL('/', req.url))
@@ -23,5 +20,5 @@ export const proxy = auth((req) => {
 })
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }

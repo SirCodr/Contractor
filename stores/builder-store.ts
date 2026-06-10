@@ -5,6 +5,7 @@ import { BASE_CLAUSES } from '@/constants/clauses'
 import type { TemplateClause } from '@/types/contract'
 
 export type Step = 1 | 2 | 3 | 4
+export type BuilderMode = 'contract' | 'template'
 
 export type PersonDraft = {
   name: string
@@ -45,6 +46,8 @@ type BuilderResult = {
 type BuilderStore = {
   step: Step
   highestStep: Step
+  mode: BuilderMode
+  selectedTemplateId: string | null
   landlord: Partial<PersonDraft>
   tenant: Partial<PersonDraft>
   hasCoDebtor: boolean
@@ -59,6 +62,8 @@ type BuilderStore = {
   contractName: string
 
   // Actions
+  setMode: (mode: BuilderMode) => void
+  setSelectedTemplateId: (id: string | null) => void
   setContractName: (name: string) => void
   setStep: (step: Step) => void
   setParties: (data: {
@@ -82,6 +87,8 @@ type BuilderStore = {
 const INITIAL_STATE = {
   step: 1 as Step,
   highestStep: 1 as Step,
+  mode: 'contract' as BuilderMode,
+  selectedTemplateId: null,
   landlord: {},
   tenant: {},
   hasCoDebtor: false,
@@ -100,6 +107,10 @@ export const useBuilderStore = create<BuilderStore>()(
   persist(
     (set) => ({
       ...INITIAL_STATE,
+
+      setMode: (mode) => set({ mode }),
+
+      setSelectedTemplateId: (id) => set({ selectedTemplateId: id }),
 
       setContractName: (contractName) => set({ contractName }),
 
@@ -137,7 +148,7 @@ export const useBuilderStore = create<BuilderStore>()(
 
       loadData: (data) => set({
         step: 1,
-        highestStep: (data.highestStep || 4) as Step, // If loading edited data, allow full nav
+        highestStep: (data.highestStep || 4) as Step,
         contractName: data.contractName || '',
         landlord: data.landlord || {},
         tenant: data.tenant || {},

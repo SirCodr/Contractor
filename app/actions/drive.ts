@@ -9,12 +9,14 @@ import {
   getFileMetadata,
   listContractsInFolder,
   getPropertiesFolderId,
-  getTemplatesFolderId,
   getDriveClient,
   saveContractConfig,
+  getMdxTemplateContent,
 } from '@/lib/google-drive'
 import type { ContractFormData } from '@/types/contract'
+import type { ContractFormValues } from '@/lib/schemas'
 import { generateContractMarkdown } from '@/lib/markdown-generator'
+import { buildMdxScope } from '@/lib/mdx/scope'
 
 /**
  * Converts the contract Markdown to an HTML string with inline styles.
@@ -97,10 +99,45 @@ export async function getContractAction(fileId: string) {
 }
 
 /**
+ * Helper: Loads MDX template and interpolates variables from contract data.
+ * Returns markdown with variables substituted.
+ */
+async function loadAndProcessMdxTemplate(
+  templateId: string,
+  accessToken: string,
+  contractData: ContractFormData,
+): Promise<string> {
+  try {
+    const template = await getMdxTemplateContent(accessToken, templateId)
+    const mdxSource = template.source
+
+    // Extract body (remove frontmatter if present)
+    const bodyMatch = mdxSource.match(/^---[\s\S]*?---\n([\s\S]*)$/)
+    const body = bodyMatch ? bodyMatch[1] : mdxSource
+
+    // Build scope from contract data
+    const scope = buildMdxScope(contractData as any as ContractFormValues)
+
+    // Variable interpolation: replace {key} with scope[key]
+    let markdown = body
+    for (const [key, value] of Object.entries(scope)) {
+      const regex = new RegExp(`\\{${key}\\}`, 'g')
+      markdown = markdown.replace(regex, String(value ?? ''))
+    }
+
+    return markdown
+  } catch (error) {
+    console.error('[loadAndProcessMdxTemplate] Failed:', error)
+    // Fallback to default markdown generator
+    return generateContractMarkdown(contractData as any)
+  }
+}
+
+/**
  * Creates a new contract Google Doc from form data.
  * Steps:
  *   1. Ensure property folder exists in Drive
- *   2. Build the contract text from clauses + variables
+ *   2. Build the contract text from clauses + variables (or load from template if selectedTemplateId provided)
  *   3. Create the Google Doc
  *   4. Save metadata as Drive file.properties
  */
@@ -119,8 +156,10 @@ export async function createContractAction(
       isTemplate
     )
 
-    // 2. Construir el contrato completo usando nuestro Markdown Generator
-    const markdown = generateContractMarkdown(data as any)
+    // 2. Construir el contrato completo (desde template si selectedTemplateId, sino markdown generator)
+    const markdown = data.selectedTemplateId
+      ? await loadAndProcessMdxTemplate(data.selectedTemplateId, session.accessToken, data)
+      : generateContractMarkdown(data as any)
 
     // 3. Convertir Markdown a HTML con estilos inline para Google Docs
     // Google Drive respeta los atributos style inline al convertir a Doc nativo
@@ -155,6 +194,7 @@ export async function createContractAction(
       end_date: data.endDate,
       status: 'active',
       config_file_id: configId, // <-- Vincular el JSON con el Google Doc
+      ...(data.selectedTemplateId && { template_id: data.selectedTemplateId }),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -188,8 +228,10 @@ export async function updateContractAction(
     const docTitle = data.contractName?.trim() || fallbackTitle
     const propertyFolderId = await createPropertyFolder(session.accessToken, data.property.address, isTemplate)
 
-    // 1. Convert to Markdown then HTML with inline styles
-    const markdown = generateContractMarkdown(data as any)
+    // 1. Convert to Markdown then HTML with inline styles (use template if selectedTemplateId)
+    const markdown = data.selectedTemplateId
+      ? await loadAndProcessMdxTemplate(data.selectedTemplateId, session.accessToken, data)
+      : generateContractMarkdown(data as any)
     const htmlContent = markdownToStyledHtml(markdown)
 
     // 2. Update Google Doc (replace contents)
@@ -219,6 +261,7 @@ export async function updateContractAction(
       end_date: data.endDate,
       status: 'active',
       config_file_id: configFileId,
+      ...(data.selectedTemplateId && { template_id: data.selectedTemplateId }),
       updated_at: new Date().toISOString(),
     }
     await saveFileMetadata(session.accessToken, fileId, metadata)
@@ -237,25 +280,15 @@ export async function listAllContractsAction() {
 
   try {
     const propertiesFolderId = await getPropertiesFolderId(session.accessToken)
-    const templatesFolderId = await getTemplatesFolderId(session.accessToken)
     const drive = getDriveClient(session.accessToken)
 
-    // List all property sub-folders and template sub-folders in parallel
-    const [foldersRes, templateFoldersRes] = await Promise.all([
-      drive.files.list({
-        q: `'${propertiesFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
-        fields: 'files(id,name)',
-      }),
-      drive.files.list({
-        q: `'${templatesFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
-        fields: 'files(id,name)',
-      })
-    ])
+    // List only property sub-folders (not templates)
+    const foldersRes = await drive.files.list({
+      q: `'${propertiesFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+      fields: 'files(id,name)',
+    })
 
-    const folders = [
-      ...(foldersRes.data.files ?? []),
-      ...(templateFoldersRes.data.files ?? []).map(f => ({ ...f, name: `${f.name} (Plantilla)` }))
-    ]
+    const folders = foldersRes.data.files ?? []
 
     // Collect contracts from each property folder
     const allContracts = await Promise.all(

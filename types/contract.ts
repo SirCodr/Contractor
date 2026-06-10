@@ -80,6 +80,20 @@ export type TemplateClause = {
   variables: string[]
 }
 
+export type MdxTemplate = {
+  driveFileId?: string
+  name: string
+  source: string
+  frontmatter: {
+    name?: string
+    version?: string
+    lawRef?: string
+    description?: string
+  }
+  createdAt?: string
+  updatedAt?: string
+}
+
 export type ContractVariable = {
   key: string
   label: string
@@ -90,6 +104,7 @@ export type ContractVariable = {
 /** Shape of the data submitted by the ContractBuilder wizard */
 export type ContractFormData = {
   contractName?: string
+  selectedTemplateId?: string | null
   landlord: Person
   tenant: Person
   hasCoDebtor: boolean

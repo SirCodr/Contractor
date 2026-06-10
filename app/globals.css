@@ -154,4 +154,39 @@
     font-family: var(--font-mono);
     font-size: 0.85em;
   }
+
+  /* CodeMirror dark theme overrides */
+  .cm-editor {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+  }
+  
+  .cm-gutters {
+    background-color: hsl(var(--muted));
+    border-right: 1px solid hsl(var(--border));
+  }
+
+  .cm-activeLineGutter {
+    background-color: hsl(var(--muted) / 0.7);
+  }
+
+  .cm-cursor {
+    border-left-color: hsl(var(--primary));
+  }
+
+  .cm-selectionBackground {
+    background-color: hsl(var(--primary) / 0.15);
+  }
+
+  .cm-lineNumbers .cm-gutterMarker {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cm-linenumber {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cm-content {
+    font-size: 0.875rem;
+  }
 }

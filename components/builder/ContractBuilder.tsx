@@ -1,12 +1,14 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useBuilderStore } from '@/stores/builder-store'
-import type { Step } from '@/stores/builder-store'
+import type { Step, BuilderMode } from '@/stores/builder-store'
 
 import { PartiesStep } from './steps/PartiesStep'
 import { PropertyStep } from './steps/PropertyStep'
 import { FinancialStep } from './steps/FinancialStep'
 import { ClausesStep } from './steps/ClausesStep'
+import { TemplateSelector } from './TemplateSelector'
 
 const STEPS = [
   { id: 1, title: 'Partes' },
@@ -15,13 +17,30 @@ const STEPS = [
   { id: 4, title: 'Cláusulas' },
 ]
 
-export function ContractBuilder() {
+interface ContractBuilderProps {
+  mode?: BuilderMode
+}
+
+export function ContractBuilder({ mode = 'contract' }: ContractBuilderProps) {
   const currentStep = useBuilderStore((state) => state.step)
   const highestStep = useBuilderStore((state) => state.highestStep)
   const setStep = useBuilderStore((state) => state.setStep)
+  const setMode = useBuilderStore((state) => state.setMode)
+
+  // Set mode on mount
+  useEffect(() => {
+    setMode(mode)
+  }, [mode, setMode])
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-8rem)]">
+      {/* Template Selector — only show in contract mode */}
+      {mode === 'contract' && (
+        <div className="mb-8">
+          <TemplateSelector />
+        </div>
+      )}
+
       {/* Stepper Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between relative">

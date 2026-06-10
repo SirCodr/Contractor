@@ -201,3 +201,117 @@ export async function getContractConfig(accessToken: string, fileId: string) {
   })
   return res.data
 }
+
+// ============= MDX Template functions =============
+
+export async function listMdxTemplates(accessToken: string) {
+  const drive = getDriveClient(accessToken)
+  const templatesFolderId = await getTemplatesFolderId(accessToken)
+
+  const res = await drive.files.list({
+    q: `'${templatesFolderId}' in parents and name contains '.mdx' and trashed = false`,
+    fields: 'files(id,name,createdTime,modifiedTime)',
+    orderBy: 'createdTime desc',
+  })
+  return res.data.files ?? []
+}
+
+/** Lists Google Docs created via the wizard (old format) stored in _plantillas/ subfolders. */
+export async function listDocTemplates(accessToken: string) {
+  const drive = getDriveClient(accessToken)
+  const templatesFolderId = await getTemplatesFolderId(accessToken)
+
+  // Get subfolders inside _plantillas
+  const foldersRes = await drive.files.list({
+    q: `'${templatesFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    fields: 'files(id,name)',
+  })
+  const folders = foldersRes.data.files ?? []
+  if (folders.length === 0) return []
+
+  // Get Google Docs from each subfolder
+  const results = await Promise.all(
+    folders.map(async (folder) => {
+      const res = await drive.files.list({
+        q: `'${folder.id}' in parents and mimeType = 'application/vnd.google-apps.document' and trashed = false`,
+        fields: 'files(id,name,properties,webViewLink,createdTime,modifiedTime)',
+        orderBy: 'createdTime desc',
+      })
+      return (res.data.files ?? []).map((f) => ({ ...f, sourceType: 'doc' as const }))
+    }),
+  )
+  return results.flat()
+}
+
+export async function getMdxTemplateContent(accessToken: string, fileId: string) {
+  const drive = getDriveClient(accessToken)
+  const res = await drive.files.get({
+    fileId,
+    fields: 'id,name,createdTime,modifiedTime',
+  })
+  
+  const contentRes = await drive.files.get({
+    fileId,
+    alt: 'media',
+  })
+
+  return {
+    id: res.data.id,
+    name: res.data.name,
+    source: contentRes.data as string,
+    createdTime: res.data.createdTime,
+    modifiedTime: res.data.modifiedTime,
+  }
+}
+
+export async function createMdxTemplate(
+  accessToken: string,
+  name: string,
+  source: string,
+): Promise<{ fileId: string }> {
+  const drive = getDriveClient(accessToken)
+  const templatesFolderId = await getTemplatesFolderId(accessToken)
+
+  const fileName = name.endsWith('.mdx') ? name : `${name}.mdx`
+  const res = await drive.files.create({
+    requestBody: {
+      name: fileName,
+      parents: [templatesFolderId],
+    },
+    media: {
+      mimeType: 'text/markdown',
+      body: source,
+    },
+    fields: 'id',
+  })
+
+  return { fileId: res.data.id! }
+}
+
+export async function updateMdxTemplate(
+  accessToken: string,
+  fileId: string,
+  source: string,
+): Promise<{ fileId: string }> {
+  const drive = getDriveClient(accessToken)
+
+  const res = await drive.files.update({
+    fileId,
+    media: {
+      mimeType: 'text/markdown',
+      body: source,
+    },
+    fields: 'id',
+  })
+
+  return { fileId: res.data.id! }
+}
+
+export async function deleteMdxTemplate(accessToken: string, fileId: string) {
+  const drive = getDriveClient(accessToken)
+  await drive.files.update({
+    fileId,
+    requestBody: { trashed: true },
+  })
+  return { success: true }
+}
